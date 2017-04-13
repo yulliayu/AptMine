@@ -15,7 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 
-public class OutputFrame extends JFrame implements ActionListener{
+abstract public class OutputFrame extends JFrame implements ActionListener{
 	
 	JPanel  p_north, p_north_right, p_north_left, p_center;
 	JButton  bt_retrieve, bt_exit, bt_excel, bt_print;
@@ -90,24 +90,14 @@ public class OutputFrame extends JFrame implements ActionListener{
 		}
 	}
 	
-	public void retrieve(){
-		
-	}
+	abstract public void retrieve();
 	
-	public void excelDown(){
-		
-	}
+	abstract public void excelDown();
 	
-	public void tablePrint(){
-		
-	}
+	abstract public void tablePrint();
 	
 	public void frameExit(){
 		System.exit(0);
-	}
-	
-	public static void main(String[] args) {
-		new OutputFrame();
 	}
 
 }
