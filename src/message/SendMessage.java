@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -37,7 +38,8 @@ public class SendMessage extends JFrame implements ActionListener{
 	JTable   table;
 	JScrollPane  scroll;
 	CompUnitModel  model;
-	JTextField  t_input;
+	JTextField  t_input, t_title;
+	JLabel  la_title;
 	
 	public SendMessage() {
 		
@@ -48,6 +50,8 @@ public class SendMessage extends JFrame implements ActionListener{
 		t_input = new JTextField(20);
 		bt_search = new JButton("검색");
 		
+		la_title = new JLabel("제목");
+		t_title = new JTextField(40);
 		area = new JTextArea();
 		bt_send = new JButton("보내기");
 		
@@ -59,8 +63,8 @@ public class SendMessage extends JFrame implements ActionListener{
 		p_center.setBackground(Color.YELLOW);
 		
 		// size
-		p_south.setPreferredSize(new Dimension(700, 70));
-		p_north.setPreferredSize(new Dimension(700, 40));
+		p_south.setPreferredSize(new Dimension(700, 100));
+		p_north.setPreferredSize(new Dimension(700, 50));
 		area.setPreferredSize(new Dimension(550, 50));
 		
 		p_north.add(t_input);
@@ -70,6 +74,8 @@ public class SendMessage extends JFrame implements ActionListener{
 		p_center.add(p_north, BorderLayout.NORTH);
 		p_center.add(scroll);
 		
+		p_south.add(la_title);
+		p_south.add(t_title);
 		p_south.add(area);
 		p_south.add(bt_send);		
 		
@@ -82,6 +88,7 @@ public class SendMessage extends JFrame implements ActionListener{
 		
 		init();
 		
+		setTitle("송신 메세지");
 		setVisible(true);
 		setSize(700, 700);
 		setLocationRelativeTo(null);
@@ -117,6 +124,7 @@ public class SendMessage extends JFrame implements ActionListener{
 		ResultSet  rs = null;
 		int msg_send_id=0;
 		String msg_content = area.getText();
+		
 		// msg_send_id 받아 놓기
 		String sql = "select seq_send_message.nextval msg_send_id from dual ";
 		try {
@@ -127,24 +135,35 @@ public class SendMessage extends JFrame implements ActionListener{
 				msg_send_id = rs.getInt("msg_send_id");
 			}
 			
-			//pstmt = null;
-			sql = " insert into send_message (msg_send_id, msg_sendtime, msg_send_content) "
-			     + " values (?, sysdate, ?)";
+			//보내는 쪽지
+			String send_user_id = "test"; // 임시로 사용. 나중에 로그인 아이디 받아 와야 함.
+			sql = " insert into send_message (msg_send_id, msg_sendtime, msg_send_content, user_id) "
+			     + " values (?, sysdate, ?, ?)";
 			pstmt = con.prepareStatement(sql);
 			pstmt.setInt(1, msg_send_id);
 			pstmt.setString(2, msg_content);
+			pstmt.setString(3, send_user_id);
 			int result = pstmt.executeUpdate();
-			StringBuilder  sb= new StringBuilder();
+			
 			int user_id_col = model.findColumn("user_id");
+			int count=0;
 			if (result !=0){
-				// send 메세지 등록 성공하면, recieve msg 등록
-				sql = "insert into recieve_message (msg_recieve_id, msg_send_id, user_id, msg_recieve_time, msg_regdate) "
-					 + " values (seq_recieve_message.nextval, ?, ?, null, sysdate)";
+				// send 메세지 등록 성공하면, 받는 쪽지 (recieve msg) 등
 				for (int i=0; i<rows.length;i++){
-					pstmt = con.prepareStatement(sql);
+					String sql_in = "insert into recieve_message (msg_recieve_id, msg_send_id, user_id, msg_recieve_time, msg_regdate) "
+							           + " values (seq_recieve_message.nextval, ?, ?, null, sysdate)";
+					pstmt = con.prepareStatement(sql_in);
 					pstmt.setInt(1, msg_send_id);
-					int user_id = (Integer)table.getValueAt(rows[i], user_id_col);
-					pstmt.setInt(2, user_id);
+					System.out.println("id = "+msg_send_id+", row = "+rows[i]+", col="+user_id_col+", value = "+table.getValueAt(rows[i], user_id_col));
+					String user_id = (String)table.getValueAt(rows[i], user_id_col);
+					pstmt.setString(2, user_id);
+					System.out.println(sql_in);
+					count+=pstmt.executeUpdate();
+					System.out.println(count);
+				}
+				
+				if (count !=0){
+					JOptionPane.showMessageDialog(this, count+"건 insert");
 				}
 			}
 			
@@ -165,12 +184,6 @@ public class SendMessage extends JFrame implements ActionListener{
 				}
 		}
 		
-		
-		
-		
-		for (int i=0; i<rows.length;i++){
-			System.out.println("length = "+rows.length  + ", i = "+i + "-"+rows[i]);
-		}
 	}
 	
 	// 검색

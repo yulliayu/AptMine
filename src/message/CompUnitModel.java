@@ -36,7 +36,7 @@ public class CompUnitModel extends AbstractTableModel{
 		sql.append(" select c.COMPLEX_NAME, u.UNIT_NAME, a.USER_NMAE, a.USER_ID \n");
 		sql.append(" from   COMPLEX c, UNIT u, APT_USER a \n");
 		sql.append(" where  c.COMPLEX_ID = u.COMPLEX_ID \n");
-		sql.append(" and    a.UNIT_ID(+) = u.UNIT_ID \n");
+		sql.append(" and    a.UNIT_ID = u.UNIT_ID \n");
 		sql.append(" and (c.COMPLEX_NAME like ? or \n");
 		sql.append("         u.UNIT_NAME like ? or \n");
 		sql.append("         a.USER_NMAE like ? ) \n");
