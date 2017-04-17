@@ -8,21 +8,24 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-public class CompUnitModel extends AbstractTableModel{
+public class RecieveMsgModel extends AbstractTableModel{
 	
 	Connection con;
 	Vector<String> columnName;
 	Vector<Vector> data = new Vector<Vector>();
 	
-	public CompUnitModel(Connection con ) {
+	public RecieveMsgModel(Connection con ) {
 		System.out.println("CompUnitModel");
 		this.con = con;
 		
 		columnName = new Vector<String>();
-		columnName.add("동");
-		columnName.add("호수");
-		columnName.add("사용자명");
-		columnName.add("사용자ID");
+		columnName.add("송신자명");
+		columnName.add("제목");
+		columnName.add("수신시간");
+		columnName.add("확인여부");
+		columnName.add("msg_recieve_id");
+		columnName.add("send_user_id");
+		columnName.add("msg_send_content");
 		
 		getList("");
 	}
@@ -33,14 +36,16 @@ public class CompUnitModel extends AbstractTableModel{
 		ResultSet  rs=null;
 		
 		StringBuffer  sql = new StringBuffer();
-		sql.append(" select c.COMPLEX_NAME 동, u.UNIT_NAME 호수, a.USER_NAME 사용자명, a.USER_ID 사용자ID \n");
-		sql.append(" from   COMPLEX c, UNIT u, APT_USER a \n");
-		sql.append(" where  c.COMPLEX_ID = u.COMPLEX_ID \n");
-		sql.append(" and    a.UNIT_ID = u.UNIT_ID \n");
-		sql.append(" and (c.COMPLEX_NAME like ? or \n");
-		sql.append("         u.UNIT_NAME like ? or \n");
-		sql.append("         a.USER_NAME like ? ) \n");
-		sql.append(" order by 1, 2 ");
+		sql.append(" select u.user_name 송신자명, s.msg_send_title 제목, r.msg_recieve_time 수신시간 \n");
+		sql.append("        , msg_confirm_flag 확인여부, r.msg_recieve_id, s.send_user_id, s.msg_send_content \n");  // 
+		sql.append(" from  recieve_message r \n");
+		sql.append("         ,send_message    s \n");
+		sql.append("         ,apt_user             u \n");
+		sql.append(" where r.msg_send_id = s.msg_send_id \n");
+		sql.append(" and    u.user_id        = s.send_user_id \n");
+		sql.append(" and   (u.user_name like ? or  \n");
+		sql.append("            s.msg_send_title like ? )  \n");
+		sql.append(" order by r.msg_recieve_time desc ");
 		
 		System.out.println(sql.toString());
 		
@@ -48,16 +53,18 @@ public class CompUnitModel extends AbstractTableModel{
 			pstmt = con.prepareStatement(sql.toString());
 			pstmt.setString(1, "%"+search+"%");
 			pstmt.setString(2, "%"+search+"%");
-			pstmt.setString(3, "%"+search+"%");
 			rs = pstmt.executeQuery();
 
 			data.removeAll(data);
 			while (rs.next()){
 				Vector vec = new Vector();
-				vec.add(rs.getString("동"));
-				vec.add(rs.getString("호수"));
-				vec.add(rs.getString("사용자명"));
-				vec.add(rs.getString("사용자ID"));
+				vec.add(rs.getString("송신자명"));
+				vec.add(rs.getString("제목"));
+				vec.add(rs.getString("수신시간"));
+				vec.add(rs.getString("확인여부"));
+				vec.add(rs.getString("msg_recieve_id"));
+				vec.add(rs.getString("send_user_id"));
+				vec.add(rs.getString("msg_send_content"));
 				
 				data.add(vec);
 			}
